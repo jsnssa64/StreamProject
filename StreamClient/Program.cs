@@ -7,6 +7,7 @@ namespace StreamClient
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
+
         }
     }
 }
