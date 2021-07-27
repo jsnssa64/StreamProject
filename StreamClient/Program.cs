@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Extensions.Hosting;
+using System;
+using System.Threading.Tasks;
 
 namespace StreamClient
 {
@@ -7,7 +9,6 @@ namespace StreamClient
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-
         }
     }
 }

@@ -1,0 +1,19 @@
+{
+  "profiles": {
+    "StreamServer": {
+      "commandName": "Project"
+    },
+    "StreamServer (Dev)": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    },
+    "StreamServer (Local)": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Local"
+      }
+    }
+  }
+}
