@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using StreamServer.FileStorage.FileStorageCredentialsModel;
 using StreamServer.Utility;
 using System;
 using System.Collections.Generic;
@@ -8,59 +9,33 @@ using System.Threading.Tasks;
 
 namespace StreamServer.FileStorage.FSModel
 {
-    public interface IFileStorageModel {
-        public void GetFile(List<IConfigurationSection> CredentialConfig);
+    public interface IFileStorageModel
+    {
+        public string storageType { get; }
     }
 
-    public class LocalFileStoreModel : IFileStorageModel
+    public class LocalFileStorageModel : IFileStorageModel
     {
-        public string fileName { get; }
         public FilePath filePath { get; }
-        public LocalFileStoreModel(string FileName, FilePath FilePath)
+        public string storageType { get; }
+
+        public LocalFileStorageModel(string StorageType, FilePath FilePath)
         {
-            fileName = FileName;
+            storageType = StorageType;
             filePath = FilePath;
         }
-
-        //  TODO
-        //  Doesn't use Credentials
-        public void GetFile(List<IConfigurationSection> CredentialConfig)
-        {
-            throw new NotImplementedException();
-        }
     }
 
-    public class ExternalFileStoreModel : IFileStorageModel
+    public class ExternalFileStorageModel : IFileStorageModel
     {
-        public ExternalStorageType type { get; }
-        public List<IConfigurationSection> credentialConfig { get; }
+        public string storageType { get; }
 
-        //  TODO
-        //  Need To Pass Credentials Configuration
-        //  CredentialConfig= FileStorageUtilities.FindKeyValuePair("Credentials", Config).GetChildren().ToList();
-        public ExternalFileStoreModel(ExternalStorageType Type, List<IConfigurationSection> CredentialConfig)
+        public FileStorageCredential storageCredentials { get; }
+
+        public ExternalFileStorageModel(string StorageType, FileStorageCredential StorageCredentials)
         {
-            type = Type;
-            credentialConfig = CredentialConfig;
-        }
-
-        public void GetFile(List<IConfigurationSection> CredentialConfig)
-        {
-
-            switch (type)
-            {
-                case ExternalStorageType.azure:
-                    string AzureSecretType = FileStorageUtilities.FindKeyValuePair("Type", CredentialConfig).Value.ToLower();
-                    FileStorageUtilities.AzureFileServiceManager(AzureSecretType, CredentialConfig);
-                    break;
-                case ExternalStorageType.aws:
-                    FileStorageUtilities.AWSFileServiceManager(CredentialConfig);
-                    break;
-                default:
-                    throw new Exception("Credentials Not Found");
-            }
-
-            throw new NotImplementedException();
+            storageType = StorageType;
+            storageCredentials = StorageCredentials;
         }
     }
 

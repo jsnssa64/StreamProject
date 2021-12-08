@@ -10,16 +10,16 @@ namespace StreamServer.FileStorage.FilePathBuilder
 {
     public interface IDirectory
     {
-        public FilePath GetFilePath(string FileLocation);
+        public FilePath CreateFilePath(string FileLocation);
     }
 
     public class CustomDirectory : IDirectory
     {
-        public FilePath GetFilePath(string FileLocation) => new FilePath(FileLocation);
+        public FilePath CreateFilePath(string FileLocation) => new FilePath(FileLocation);
     }
 
     public class LocalDirectory : IDirectory
     {
-        public FilePath GetFilePath(string FileLocation) => new CurrentDirectoryFilePath(FileLocation);
+        public FilePath CreateFilePath(string FileLocation) => new CurrentDirectoryFilePath(FileLocation);
     }
 }

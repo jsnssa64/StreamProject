@@ -10,50 +10,78 @@ using System.Threading.Tasks;
 
 namespace StreamServer.FileStorage.FSBuilder
 {
+    //  Even though similar keep both separate
+    //  as you might add additonal ways of accessing secrets
+    //  but not adding any other ways of accessing Files
+    public enum FileStorageCredentialType
+    {
+        azure,
+        aws,
+        local
+    }
+
+    public enum FilePathSecretsCredentialType
+    {
+        azure,
+        aws,
+        plain
+    }
+
     public interface IFileStorageModelBuilder
     {
-        public IFileStorageModel fileStorageModel { get; }
+        public const string FileStorageTypeKeyName = "Type";
+        public IFileStorageModel FileStorageModel { get; }
     }
     public class ExternalFileStorageModelBuilder : IFileStorageModelBuilder
     {
         public const string CredentialsKeyName = "Credentials";
-        public IFileStorageModel fileStorageModel { get; }
+        public const string CredentialsTypeKeyName = "Type";
+        public IFileStorageModel FileStorageModel { get; }
 
-        public ExternalFileStorageModelBuilder(List<IConfigurationSection> Config)
+        public ExternalFileStorageModelBuilder(List<IConfigurationSection> FileStorageConfig)
         {
             //  With Secret
             //  Find, Create Credentials and Create Local Storage Object
-            ExternalStorageType CredType = GetCredentialType(Config);
+            FileStorageCredentialType CredType = GetCredentialType(FileStorageConfig);
 
-            List<IConfigurationSection> FileStorageCredentialConfig = FileStorageUtilities.FindKeyValuePair(CredentialsKeyName, Config).GetChildren().ToList();
+            List<IConfigurationSection> FileStorageCredentialConfig = FileStorageUtilities.FindKeyValuePair(CredentialsKeyName, FileStorageConfig).GetChildren().ToList();
 
-            fileStorageModel = new ExternalFileStoreModel(CredType, FileStorageCredentialConfig);
+            FileStorageModel = new ExternalFileStorageModel(CredType, FileStorageCredentialConfig);
         }
 
 
 
         //  Type = File Storage Location e.g aws S3
-        public ExternalStorageType GetCredentialType(List<IConfigurationSection> Config) => Enum.Parse<ExternalStorageType>(FileStorageUtilities.FindKeyValuePair("Type", Config).Value.ToLower());
+        public FileStorageCredentialType GetCredentialType(List<IConfigurationSection> CredentialsConfig) => Enum.Parse<FileStorageCredentialType>(FileStorageUtilities.FindKeyValuePair(CredentialsTypeKeyName, CredentialsConfig).Value.ToLower());
     }
 
     public class LocalFileStorageModelBuilder : IFileStorageModelBuilder
     {
-        public IFileStorageModel fileStorageModel { get; }
+        public IFileStorageModel FileStorageModel { get; }
 
-        public const string FilePathKeyName = "FilePath";
         public const string TypeKeyName = "Type";
+        public const string FilePathKeyName = "FilePath";
+        public const string FilePathTypeKeyName = "Type";
+        public const string CredentialsTypeKeyName = "Type";
         public const string PlainFilePathStorageType = "Plain";
 
         public LocalFileStorageModelBuilder(List<IConfigurationSection> FileStorageConfig)
         {
-            List<IConfigurationSection> filePathConfig = FileStorageUtilities.FindKeyValuePair(FilePathKeyName, FileStorageConfig).GetChildren().ToList();
-            LocalFilePath PathModel = GetFilePath(filePathConfig);
+            string TypeValue = FileStorageUtilities.FindKeyValuePair(TypeKeyName, FileStorageConfig).Value;
 
+            //  Generate File Path
+            List<IConfigurationSection> filePathConfig = FileStorageUtilities.FindKeyValuePair(FilePathKeyName, FileStorageConfig).GetChildren().ToList();
+            LocalFilePathBuilder PathModel = GetFilePathBuilder(filePathConfig);
+            
             //  Build File Storage Model
-            fileStorageModel = new LocalFileStoreModel("", PathModel.filePath);
+            FileStorageModel = new LocalFileStorageModel(TypeValue, PathModel.Build(PathModel.Path));
         }
 
-        //  File Path Builder (Secret/Plain)
-        public LocalFilePath GetFilePath(List<IConfigurationSection> FilePathConfig) => FileStorageUtilities.FindKeyValuePair(TypeKeyName, FilePathConfig).Value == PlainFilePathStorageType ? new FilePathPlain(FilePathConfig) : new FilePathSecret(FilePathConfig);
+        //  Get File Path Builder (Secret/Plain) and build
+        public LocalFilePathBuilder GetFilePathBuilder(List<IConfigurationSection> FilePathConfig) => FileStorageUtilities.FindKeyValuePair(FilePathTypeKeyName, FilePathConfig).Value == PlainFilePathStorageType ? new FilePathPlainBuilder(FilePathConfig) : new FilePathSecretBuilder(FilePathConfig);
+
+        //  Type = File Storage Location e.g aws S3
+        public FileStorageCredentialType GetCredentialType(List<IConfigurationSection> CredentialsConfig) => Enum.Parse<FileStorageCredentialType>(FileStorageUtilities.FindKeyValuePair(CredentialsTypeKeyName, CredentialsConfig).Value.ToLower());
+
     }
 }

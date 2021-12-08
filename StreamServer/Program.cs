@@ -25,7 +25,7 @@ namespace StreamServer
             await host.RunAsync();
         }
 
-        public const string FileStorageKey = "FileStorage";
+        public const string FileStorageKeyName = "FileStorage";
 
         private static IContainer CompositionRoot(IConfiguration configuration)
         {
@@ -35,7 +35,7 @@ namespace StreamServer
             builder.RegisterType<AmazonSecretsManagerClient>();
             builder.RegisterType<GetSecretValueRequest>();
 
-            builder.Register(FSBuilder => new FileStorageManager(configuration.GetSection(FileStorageKey).GetChildren().ToList()));
+            builder.Register(fileStorageModel => new FileStorageManager(configuration.GetSection(FileStorageKeyName).GetChildren().ToList()).fileStorageModel);
 
             return builder.Build();
         }
